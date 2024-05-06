@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  email          String   @unique
+  hashedPassword String
+  isAdmin        Boolean? @default(false)
+  gender         Gender
+  dob            DateTime
+  createdAt      DateTime @default(now())
+}
+
+model Music {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  public_id    String?
+  secure_url   String?
+  title        String
+  artists      Artist[]
+  //Stores the number of people who have listen to the song
+  listeners    Int       @default(0)
+  genre        Genre[]
+  releasedDate DateTime  @default(now())
+  captions     Caption[]
+  duration     String
+  likes        Int       @default(0)
+  company      String
+  country      String
+}
+
+model Artist {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  isVerified   Boolean
+  listeners    Int     @default(0)
+  role         Role
+  worldRanking Int
+
+  Music   Music?  @relation(fields: [musicId], references: [id])
+  musicId String? @db.ObjectId
+}
+
+model Genre {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+
+  Music   Music?  @relation(fields: [musicId], references: [id])
+  musicId String? @db.ObjectId
+}
+
+model Caption {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  caption  String
+  timstamp String
+
+  Music   Music?  @relation(fields: [musicId], references: [id])
+  musicId String? @db.ObjectId
+}
+
+enum Gender {
+  Male
+  Female
+  Other
+}
+
+enum Role {
+  Singer
+  Composer
+  Writer
+  Producer
+}
