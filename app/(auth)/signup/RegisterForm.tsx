@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { RegisterUser } from "@/types";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -44,7 +45,7 @@ const RegisterForm = () => {
         await signIn("credentials", {
           email: user.email,
           password: user.password,
-          callbackUrl: "/",
+          callbackUrl: DEFAULT_LOGIN_REDIRECT,
         });
       }
     } catch (error) {

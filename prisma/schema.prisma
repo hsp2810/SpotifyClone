@@ -3,12 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  id             String   @id @default(cuid())
+  public_id      String?
+  secure_url     String?
   name           String
   email          String   @unique
   hashedPassword String
@@ -19,49 +21,52 @@ model User {
 }
 
 model Music {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  public_id    String?
-  secure_url   String?
-  title        String
-  artists      Artist[]
+  id                   String   @id @default(cuid())
+  thumbnail_public_id  String?
+  thumbnail_secure_url String?
+  music_public_id      String?
+  music_secure_url     String?
+  title                String
   //Stores the number of people who have listen to the song
-  listeners    Int       @default(0)
-  genre        Genre[]
-  releasedDate DateTime  @default(now())
-  captions     Caption[]
-  duration     String
-  likes        Int       @default(0)
-  company      String
-  country      String
+  listeners            Int      @default(0)
+  releasedDate         DateTime @default(now())
+  duration             String
+  likes                Int      @default(0)
+  company              String
+  country              String
+
+  artists  Artist[]
+  genres   Genre[]
+  captions Caption[]
 }
 
 model Artist {
-  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  id           String  @id @default(cuid())
+  username     String  @unique
+  public_id    String?
+  secure_url   String?
   name         String
-  isVerified   Boolean
+  //Automatically when the listeners will go above 10
+  isVerified   Boolean @default(false)
   listeners    Int     @default(0)
   role         Role
-  worldRanking Int
-
-  Music   Music?  @relation(fields: [musicId], references: [id])
-  musicId String? @db.ObjectId
+  worldRanking Int     @default(0)
+  songs        Music[]
 }
 
 model Genre {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-
-  Music   Music?  @relation(fields: [musicId], references: [id])
-  musicId String? @db.ObjectId
+  id    String  @id @default(cuid())
+  name  String  @unique
+  music Music[]
 }
 
 model Caption {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  id       String @id @default(cuid())
   caption  String
   timstamp String
 
   Music   Music?  @relation(fields: [musicId], references: [id])
-  musicId String? @db.ObjectId
+  musicId String?
 }
 
 enum Gender {

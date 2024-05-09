@@ -4,7 +4,9 @@ import bcrypt from "bcrypt";
 import { Gender } from "@prisma/client";
 
 export async function POST(request: Request) {
-  let { email, password, name, gender, dob } = await request.json();
+  let { email, password, name, gender, dob, isAdmin } = await request.json();
+
+  console.log("Getting all the data: ", gender, dob);
 
   const user = await prisma.user.findUnique({
     where: { email },
@@ -19,10 +21,19 @@ export async function POST(request: Request) {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  if (gender == "Male") gender = Gender.Male;
-  else if (gender == "Female") gender = Gender.Female;
-  else if (gender == "Other") gender = Gender.Other;
-  else return NextResponse.json({ message: "Gender Invalid" });
+  switch (gender) {
+    case "Male":
+      gender = Gender.Male.toString();
+      break;
+    case "Female":
+      gender = Gender.Female.toString();
+      break;
+    case "Other":
+      gender = Gender.Other.toString();
+      break;
+    default:
+      return NextResponse.json({ message: "Gender Invalid" });
+  }
 
   const convertDate = new Date(dob);
 
@@ -31,7 +42,8 @@ export async function POST(request: Request) {
       email,
       hashedPassword,
       name,
-      gender: Gender.Other,
+      gender,
+      isAdmin: isAdmin || false,
       dob: convertDate,
     },
   });

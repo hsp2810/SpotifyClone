@@ -5,81 +5,99 @@ import { LoginUser } from "@/types";
 import { LoaderCircle } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
+import ErrorDisplay from "@/app/_utils/ErrorDisplay";
 
 const defUser: LoginUser = {
   email: "firstuser@gmail.com",
   password: "password",
 };
 
-const RegisterForm = () => {
+export default function LoginForm() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+
   const [user, setUser] = useState<LoginUser>(defUser);
-  const [isPending, setTransition] = useState<boolean>(false);
+  const [isPending, startTransition] = useTransition();
+  const [errorMsg, setErrorMsg] = useState<string>();
 
   const handleChange = (e: any) => {
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
+  useEffect(() => {
+    if (error === "CredentialsSignin") {
+      setErrorMsg("Invalid Credentials");
+    }
+  }, [error]);
+
   const handleLogin = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
     e.preventDefault();
-    try {
-      await signIn("credentials", {
-        email: user.email,
-        password: user.password,
-        callbackUrl: DEFAULT_LOGIN_REDIRECT,
-      });
-    } catch (error) {
-      console.log(error);
-    }
+
+    startTransition(async () => {
+      try {
+        await signIn("credentials", {
+          email: user.email,
+          password: user.password,
+          callbackUrl: DEFAULT_LOGIN_REDIRECT,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    });
   };
 
   return (
-    <form className='w-[40%] m-auto mt-7'>
-      <Field
-        handleChange={handleChange}
-        type='email'
-        title='What’s your email address?'
-        htmlFor={"email"}
-        id='email'
-        name='email'
-        placeholder='Enter your email.'
-        value={user?.email}
-      />
-      <Field
-        handleChange={handleChange}
-        type='password'
-        title='What’s your password'
-        htmlFor={"password"}
-        id='password'
-        name='password'
-        placeholder='Create a password.'
-        value={user?.password}
-      />
+    <>
+      {errorMsg && <ErrorDisplay error={errorMsg} />}
+      <form className='w-[40%] m-auto mt-7'>
+        <Field
+          handleChange={handleChange}
+          type='email'
+          title='What’s your email address?'
+          htmlFor={"email"}
+          id='email'
+          name='email'
+          placeholder='Enter your email.'
+          value={user?.email}
+        />
+        <Field
+          handleChange={handleChange}
+          type='password'
+          title='What’s your password'
+          htmlFor={"password"}
+          id='password'
+          name='password'
+          placeholder='Create a password.'
+          value={user?.password}
+        />
 
-      <button
-        className='text-black font-bold rounded-full py-3 px-8 bg-[#1ed760] text-lg hover:scale-105 block m-auto'
-        onClick={handleLogin}
-        disabled={isPending}
-      >
-        {isPending ? (
-          <LoaderCircle className='mr-2 h-4 w-4 animate-spin' />
-        ) : (
-          "Login"
-        )}
-      </button>
+        <button
+          className='text-black font-bold rounded-full py-3 px-8 bg-[#1ed760] text-lg hover:scale-105 block m-auto'
+          onClick={handleLogin}
+          disabled={isPending}
+        >
+          {isPending ? (
+            <LoaderCircle className='mr-2 h-4 w-4 animate-spin' />
+          ) : (
+            "Login"
+          )}
+        </button>
 
-      <p className='text-center mt-5'>
-        Don't have an account?{" "}
-        <Link href={"/signup"} className='text-[#1DB954]'>
-          Sign up
-        </Link>
-        .
-      </p>
-    </form>
+        <p className='text-center mt-5'>
+          Don't have an account?{" "}
+          <Link href={"/signup"} className='text-[#1DB954]'>
+            Sign up
+          </Link>
+          .
+        </p>
+      </form>
+    </>
   );
-};
+}
 
 interface FieldProps {
   title: string;
@@ -153,5 +171,3 @@ const Radio = ({
     </div>
   );
 };
-
-export default RegisterForm;

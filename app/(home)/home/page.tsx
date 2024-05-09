@@ -1,6 +1,6 @@
 import Sidebar from "@/app/components/Sidebar";
 import Dashboard from "./Dashboard";
-import SignupFooter from "./SignupFooter";
+import SignupFooter from "./footer/SignupFooter";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
